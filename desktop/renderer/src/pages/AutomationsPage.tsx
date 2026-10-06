@@ -69,7 +69,7 @@ export const AutomationsPage: React.FC = () => {
               </div>
               <div className="flex items-center gap-2 flex-wrap text-[11px] font-mono text-slate-400">
                 <span className="text-slate-500">Sources:</span>
-                {m.sources.map((s, idx) => (
+                {(m.sources || []).map((s: string, idx: number) => (
                   <span key={idx} className="px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300">
                     {s}
                   </span>

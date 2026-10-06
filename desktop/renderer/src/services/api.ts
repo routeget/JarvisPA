@@ -57,6 +57,31 @@ export const jarvisAPI = {
     return await res.json();
   },
 
+  async configureConnection(
+    connectionId: string,
+    data: {
+      name?: string;
+      status?: string;
+      auth_type?: string;
+      credential?: string;
+      client_id?: string;
+      client_secret?: string;
+      tenant_id?: string;
+      metadata?: Record<string, any>;
+    }
+  ) {
+    const res = await fetch(`${API_BASE}/connections/${connectionId}/configure`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: res.statusText }));
+      throw new Error(err.detail || 'Failed to configure connection');
+    }
+    return await res.json();
+  },
+
   async testConnection(connectionId: string) {
     const res = await fetch(`${API_BASE}/connections/${connectionId}/test`, { method: 'POST' });
     return await res.json();
@@ -68,8 +93,52 @@ export const jarvisAPI = {
     return await res.json();
   },
 
+  async configureProvider(
+    providerId: string,
+    data: {
+      api_key?: string;
+      endpoint?: string;
+      is_enabled?: boolean;
+      default_model?: string;
+      fallback_model?: string;
+      max_budget_daily?: number;
+    }
+  ) {
+    const res = await fetch(`${API_BASE}/providers/${providerId}/configure`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: res.statusText }));
+      throw new Error(err.detail || 'Failed to configure provider');
+    }
+    return await res.json();
+  },
+
   async getModels() {
     const res = await fetch(`${API_BASE}/models`);
+    return await res.json();
+  },
+
+  // Vault Management
+  async getVaultKeys() {
+    const res = await fetch(`${API_BASE}/vault/keys`);
+    return await res.json();
+  },
+
+  async setVaultKey(key: string, value: string) {
+    const res = await fetch(`${API_BASE}/vault/keys`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, value }),
+    });
+    if (!res.ok) throw new Error('Failed to store secret in vault');
+    return await res.json();
+  },
+
+  async deleteVaultKey(keyName: string) {
+    const res = await fetch(`${API_BASE}/vault/keys/${keyName}`, { method: 'DELETE' });
     return await res.json();
   },
 

@@ -78,6 +78,14 @@ class VaultSecretRequest(BaseModel):
     value: str
 
 
+class ConfigureVoiceProviderRequest(BaseModel):
+    api_key: Optional[str] = None
+    voice_id: Optional[str] = None
+    rate: Optional[float] = None
+    pitch: Optional[float] = None
+    endpoint: Optional[str] = None
+
+
 PROVIDER_KEY_MAP = {
     "claude": "ANTHROPIC_API_KEY",
     "openai": "OPENAI_API_KEY",
@@ -497,7 +505,43 @@ async def search_endpoint(q: str = Query(..., min_length=1)):
     return await unified_search_engine.search_all(q)
 
 
-# 13. Voice command & Speech Synthesis (Section 40-42)
+# 13. Voice Providers & Speech Synthesis (Section 40-42)
+@api_router.get("/voice/providers")
+async def list_voice_providers():
+    return voice_service.list_voice_providers()
+
+
+@api_router.post("/voice/providers/{provider_id}/activate")
+async def activate_voice_provider(provider_id: str):
+    try:
+        return voice_service.activate_provider(provider_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@api_router.post("/voice/providers/{provider_id}/configure")
+async def configure_voice_provider(provider_id: str, req: ConfigureVoiceProviderRequest):
+    try:
+        return voice_service.configure_provider(
+            provider_id=provider_id,
+            api_key=req.api_key,
+            voice_id=req.voice_id,
+            rate=req.rate,
+            pitch=req.pitch,
+            endpoint=req.endpoint,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@api_router.post("/voice/providers/{provider_id}/test")
+async def test_voice_provider(provider_id: str):
+    try:
+        return await voice_service.test_provider(provider_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
 @api_router.post("/voice/command")
 async def voice_command(req: VoiceCommandRequest):
     return voice_service.process_voice_command(req.transcript)
@@ -505,7 +549,7 @@ async def voice_command(req: VoiceCommandRequest):
 
 @api_router.post("/voice/synthesize")
 async def voice_synthesize(req: VoiceSynthesizeRequest):
-    return voice_service.prepare_speech_response(req.text)
+    return await voice_service.prepare_speech_response(req.text)
 
 
 # 14. Notifications (Section 61)

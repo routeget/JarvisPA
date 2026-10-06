@@ -152,3 +152,20 @@ export interface SafetyStatus {
   execution_allowed?: boolean;
   last_stop_trigger?: string;
 }
+
+export interface VoiceProviderItem {
+  id: string;
+  name: string;
+  description: string;
+  key_name: string | null;
+  is_active: boolean;
+  is_configured: boolean;
+  masked_key: string | null;
+  current_voice: string;
+  available_voices: string[];
+  rate: number;
+  pitch: number;
+  endpoint: string;
+  protocol: string;
+}
+

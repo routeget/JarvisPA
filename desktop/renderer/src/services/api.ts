@@ -192,7 +192,7 @@ export const jarvisAPI = {
     return await res.json();
   },
 
-  // Voice Command
+  // Voice Command & Multi-Provider Engine (Section 40-42)
   async sendVoiceCommand(transcript: string) {
     const res = await fetch(`${API_BASE}/voice/command`, {
       method: 'POST',
@@ -201,4 +201,52 @@ export const jarvisAPI = {
     });
     return await res.json();
   },
+
+  async getVoiceProviders() {
+    const res = await fetch(`${API_BASE}/voice/providers`);
+    return await res.json();
+  },
+
+  async activateVoiceProvider(providerId: string) {
+    const res = await fetch(`${API_BASE}/voice/providers/${providerId}/activate`, { method: 'POST' });
+    if (!res.ok) throw new Error('Failed to activate voice provider');
+    return await res.json();
+  },
+
+  async configureVoiceProvider(
+    providerId: string,
+    data: {
+      api_key?: string;
+      voice_id?: string;
+      rate?: number;
+      pitch?: number;
+      endpoint?: string;
+    }
+  ) {
+    const res = await fetch(`${API_BASE}/voice/providers/${providerId}/configure`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: res.statusText }));
+      throw new Error(err.detail || 'Failed to configure voice provider');
+    }
+    return await res.json();
+  },
+
+  async testVoiceProvider(providerId: string) {
+    const res = await fetch(`${API_BASE}/voice/providers/${providerId}/test`, { method: 'POST' });
+    return await res.json();
+  },
+
+  async synthesizeVoice(text: string) {
+    const res = await fetch(`${API_BASE}/voice/synthesize`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text }),
+    });
+    return await res.json();
+  },
 };
+

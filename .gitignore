@@ -33,5 +33,7 @@ Thumbs.db
 .env.*.local
 *.enc
 .vault_store.enc
+*voice_config.json
 data/
+
 

@@ -137,6 +137,9 @@ class SecureCredentialVault:
             "GOOGLE_WORKSPACE_CREDENTIALS",
             "N8N_API_KEY",
             "N8N_URL",
+            "ELEVENLABS_API_KEY",
+            "DEEPGRAM_API_KEY",
+            "AZURE_SPEECH_KEY",
         ]
         
         result = {}

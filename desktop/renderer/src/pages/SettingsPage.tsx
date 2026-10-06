@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Settings, ShieldAlert, Sliders, Cpu, Key, Lock, Volume2, Globe, ExternalLink, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import { useAppStore } from '../stores/appStore';
 import { jarvisAPI } from '../services/api';
+import { audioService } from '../services/audioService';
 import { AIProviderItem } from '../types';
 
 export const SettingsPage: React.FC = () => {
@@ -270,21 +271,64 @@ export const SettingsPage: React.FC = () => {
 
       {/* Voice Configuration (Section 40-42) */}
       <div className="rounded-xl glass-panel p-5 space-y-4 border border-slate-800">
-        <h2 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
-          <Volume2 className="w-4 h-4 text-cyan-400" />
-          Voice & Real-Time Interaction (Section 41)
-        </h2>
-        <div className="text-xs space-y-1.5">
-          <label className="text-slate-400">Real-Time Voice Engine</label>
-          <select
-            value={voiceProvider}
-            onChange={(e) => setVoiceProvider(e.target.value)}
-            className="w-full sm:w-80 bg-slate-900 border border-slate-800 rounded-lg p-2 text-slate-200 focus:outline-none focus:border-cyan-500 block"
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
+              <Volume2 className="w-4 h-4 text-fuchsia-400" />
+              AI Voice Engine & Real-Time Speech (Section 41)
+            </h2>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Switch between ElevenLabs, OpenAI Realtime, Google Gemini Live, Deepgram Aura, Azure Speech, or Local WebSpeech.
+            </p>
+          </div>
+          <button
+            onClick={() => setCurrentScreen('connections')}
+            className="px-3 py-1.5 rounded-lg bg-fuchsia-500/10 border border-fuchsia-500/30 text-xs text-fuchsia-300 hover:bg-fuchsia-500/20 transition-all flex items-center gap-1 font-medium"
           >
-            <option value="local-webspeech">Local System WebSpeech STT / TTS (Active)</option>
-            <option value="gemini-live">Gemini Live Realtime Voice API</option>
-            <option value="openai-realtime">OpenAI Realtime API</option>
-          </select>
+            <span>Manage All Voice Models</span>
+            <ExternalLink className="w-3 h-3" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs pt-1">
+          <div className="space-y-1.5">
+            <label className="text-slate-400">Active Voice Model Provider</label>
+            <select
+              value={voiceProvider}
+              onChange={async (e) => {
+                const target = e.target.value;
+                setVoiceProvider(target);
+                try {
+                  await jarvisAPI.activateVoiceProvider(target);
+                  audioService.speak(`Voice engine switched to ${target}.`);
+                  setSaveMessage(`Active voice provider set to ${target}.`);
+                } catch (err: any) {
+                  setSaveMessage(`Failed to activate: ${err.message}`);
+                }
+              }}
+              className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-fuchsia-500 block font-mono"
+            >
+              <option value="local_webspeech">Local System WebSpeech (Zero Key / Built-in)</option>
+              <option value="elevenlabs">ElevenLabs Generative Voice AI</option>
+              <option value="openai_realtime">OpenAI Realtime Voice & Whisper</option>
+              <option value="gemini_live">Google Gemini Live Multimodal</option>
+              <option value="deepgram">Deepgram Aura Conversational Voice</option>
+              <option value="azure_speech">Azure AI Cognitive Speech Services</option>
+            </select>
+          </div>
+
+          <div className="space-y-1.5 flex flex-col justify-end">
+            <label className="text-slate-400">Audio Preview</label>
+            <button
+              onClick={() => {
+                audioService.speak("J.A.R.V.I.S. voice synthesis online. All protocols operational and standing by.");
+              }}
+              className="px-4 py-2 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-200 hover:text-fuchsia-400 hover:border-fuchsia-500/40 transition-colors flex items-center justify-center gap-2 font-medium"
+            >
+              <Volume2 className="w-4 h-4 text-fuchsia-400" />
+              <span>Test Speech Synthesis</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

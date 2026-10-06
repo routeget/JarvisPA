@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  jarvis-postgres:
+    image: pgvector/pgvector:pg16
+    container_name: jarvis_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: jarvis
+      POSTGRES_USER: jarvis_admin
+      POSTGRES_PASSWORD: jarvis_secure_password_2026
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ../postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  jarvis-redis:
+    image: redis:7-alpine
+    container_name: jarvis_redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redisdata:/data
+
+  jarvis-n8n:
+    image: n8nio/n8n:latest
+    container_name: jarvis_n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=jarvis_n8n_admin
+    volumes:
+      - n8ndata:/home/node/.n8n
+
+  jarvis-backend:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile
+    container_name: jarvis_backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://jarvis_admin:jarvis_secure_password_2026@jarvis-postgres:5432/jarvis
+      - REDIS_URL=redis://jarvis-redis:6379/0
+      - JARVIS_MASTER_KEY=jarvis_desktop_local_device_key_2026
+    depends_on:
+      - jarvis-postgres
+      - jarvis-redis
+
+volumes:
+  pgdata:
+  redisdata:
+  n8ndata:
